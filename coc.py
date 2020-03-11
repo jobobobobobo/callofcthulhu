@@ -77,6 +77,7 @@ class HumanCharacter(object):
 
     @classmethod
     def generate_random(cls, name,skill_dict):
+        # TODO: update this to 7th edition rules!!!
         # STR, CON, POW, DEX, CHA are all 3d6
         strength = dice_roll(d6_pool(3))
         constitution = dice_roll(d6_pool(3))
