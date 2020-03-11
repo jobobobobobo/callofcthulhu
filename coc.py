@@ -1,13 +1,16 @@
 from dice import dice_pool, dice_roll, d6_pool, Die
 from functools import reduce
 from math import ceil
+import csv
 
 
 class Skill(object):
-    def __init__(self, name, score):
+    def __init__(self, name, score, check=False, rules=None, important=False):
         self.name = name
         self.score = score
-        self.check = False
+        self.check = check
+        self.rules = rules
+        self.important = important
 
     def points(self):
         return self.score
@@ -41,6 +44,18 @@ class Skill(object):
 
 
 class HumanCharacter(object):
+    
+    @staticmethod
+    def read_skill_dict(filename="skills.csv"):
+        skill_dict = {}
+        with open(filename,newline='\n') as csvfile:
+            skill_reader = csv.reader(csvfile,delimiter=',',quotechar='|')
+            for row in skill_reader:
+                name = row[0]
+                skill = Skill(name,int(row[1]),rules=row[2])
+                skill_dict.update({name : skill})
+        return skill_dict
+
     def stat_dictionary(self):
         return {
             "STR": self.strength,
@@ -61,7 +76,7 @@ class HumanCharacter(object):
         return ret
 
     @classmethod
-    def generate_random(cls, name):
+    def generate_random(cls, name,skill_dict):
         # STR, CON, POW, DEX, CHA are all 3d6
         strength = dice_roll(d6_pool(3))
         constitution = dice_roll(d6_pool(3))
@@ -78,55 +93,7 @@ class HumanCharacter(object):
         # Age is 17+2d6, but has a minimum of EDU + 5
         age = dice_roll(d6_pool(2), 17)
         age = age if age >= (education + 5) else (education + 5)
-        # Skills
-        skill_dict = {
-            "accounting": Skill("accounting", 5),
-            "anthropology": Skill("anthropology", 1),
-            "appraise": Skill("appraise", 5),
-            "archaeology": Skill("archaeology", 1),
-            "art/craft": Skill("art/craft", 5),
-            "charm": Skill("charm", 15),
-            "climb": Skill("climb", 20),
-            "credit rating": Skill("credit rating", 0),
-            "cthulhu mythos": Skill("cthulhu mythos", 0),
-            "disguise": Skill("disguise", 5),
-            "dodge": Skill("dodge", (dexterity / 2)),
-            "drive auto": Skill("drive auto", 20),
-            "elec repair": Skill("elec repair", 10),
-            "fast talk": Skill("fast talk", 5),
-            "brawl": Skill("brawl", 25),
-            "handgun": Skill("handgun", 20),
-            "rifle/shotgun": Skill("rifle/shotgun", 25),
-            "first aid": Skill("first aid", 30),
-            "history": Skill("history", 5),
-            "intimidate": Skill("intimidate", 15),
-            "jump": Skill("jump", 20),
-            "language (other)": Skill("language (other)", 1),
-            "language (own)": Skill("language (own)", education),
-            "law": Skill("law", 5),
-            "library use": Skill("library use", 20),
-            "listen": Skill("listen", 20),
-            "locksmith": Skill("locksmith", 1),
-            "mechanical repair": Skill("mechanical repair", 10),
-            "medicine": Skill("medicine", 1),
-            "natural world": Skill("natural world", 10),
-            "navigate": Skill("navigate", 10),
-            "occult": Skill("occult", 5),
-            "heavy machinery": Skill("heavy machinery", 1),
-            "persuade": Skill("persuade", 10),
-            "pilot": Skill("pilot", 1),
-            "psychology": Skill("psychology", 10),
-            "psychoanalysis": Skill("psychoanalysis", 1),
-            "ride": Skill("ride", 5),
-            "science": Skill("science", 1),
-            "sleight of hand": Skill("sleight of hand", 10),
-            "spot hidden": Skill("spot hidden", 25),
-            "stealth": Skill("stealth", 20),
-            "survival": Skill("survival", 10),
-            "swim": Skill("swim", 20),
-            "throw": Skill("throw", 20),
-            "track": Skill("track", 10),
-        }
+
         character = cls(
             name,
             strength,
@@ -141,6 +108,7 @@ class HumanCharacter(object):
             skill_dict,
         )
         return character
+
 
     def __init__(
         self,
@@ -236,7 +204,8 @@ class HumanCharacter(object):
 if __name__ == "__main__":
     print("Welcome to the Call of Cthulhu character generator.")
     name = input("Please provide a name for your character: ")
-    player = HumanCharacter.generate_random(name)
+    skill_dict = HumanCharacter.read_skill_dict()
+    player = HumanCharacter.generate_random(name,skill_dict)
     print(f"Here is your character, {name}: \n{player}")
     library_roll = player.skill_roll("library use")
     print(

@@ -1,0 +1,81 @@
+accounting,5,core
+acting,5,core
+animal handling,5,uncommon
+anthropology,1,core
+appraise,5,core
+archaeology,1,core
+art and craft,5,general
+artillery,1,uncommon
+astronomy,1,core
+axe,15,core
+biology,1,core
+botany,1,core
+bow,15,core
+brawl,25,core
+chainsaw,10,core
+charm,15,core
+chemistry,1,core
+climb,20,core
+computer use,5,modern
+credit rating,0,core
+cryptography,1,core
+cthulhu mythos,0,core
+demolitions,1,uncommon
+disguise,5,core
+diving,1,core
+dodge,0,core
+drive auto,20,core
+electrical repair,10,core
+electronics,1,modern
+fast talk,5,core
+fine art,5,core
+first aid,30,core
+flail,10,core
+flamethrower,10,core
+forensics,1,core
+forgery,5,core
+garrote,15,core
+geology,1,core
+handgun,20,core
+heavy weapons,10,core
+history,5,core
+hypnosis,1,uncommon
+intimidate,15,core
+jump,20,core
+language own,0,core
+law,5,core
+library use,20,core
+listen,20,core
+locksmith,1,core
+machine gun,10,core
+mathematics,1,core
+mechanical repair,10,core
+medicine,1,core
+meteorology,1,core
+natural world,10,core
+navigate,10,core
+occult,5,core
+operate heavy machinery,1,core
+persuade,10,core
+pharmacy,1,core
+photography,5,core
+physics,1,core
+psychoanalysis,1,core
+psychology,10,core
+read lips,1,uncommon
+ride,5,core
+rifle,25,core
+science,1,core
+shotgun,25,core
+sleight of hand,10,core
+spear,20,core
+spot hidden,25,core
+stealth,20,core
+submachine gun,15,core
+survival,10,core
+sword,20,core
+swim,20,core
+throw,20,core
+track,10,core
+whip,5,core
+zoology,1,core
