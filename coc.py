@@ -3,6 +3,28 @@ from functools import reduce
 from math import ceil
 import csv
 
+# The damage bonus table can be found on page 33 of the 7th revised edition.
+def damage_bonus_table(strength, size):
+    key = strength + size
+    damage_bonus = 0
+    damage_bonus_string = None
+    build = 0
+    if key >= 165:
+        number_d6 = ceil(((key-204)/80)+1)
+        damage_bonus_string = f"+{number_d6}d6"
+        damage_bonus = dice_roll(d6_pool(number_d6))
+        build = number_d6 + 1
+    elif key >= 125:
+        damage_bonus_string = f"+1d4"
+        damage_bonus = dice_roll(dice_pool(1,4))
+        build = 1
+    elif key >= 85:
+        pass
+    else:
+        damage_bonus = -1 if key >= 65 else -2
+        damage_bonus_string = str(damage_bonus)
+        build = damage_bonus
+    return {'damage-bonus': damage_bonus, 'build': build, 'dice': damage_bonus_string}
 
 class Skill(object):
     def __init__(self, name, score, check=False, rules=None, important=False):
@@ -152,37 +174,9 @@ class HumanCharacter(object):
         # Skills
         self.skill_dict = skill_dict
 
-    def damage_bonus_table(self):
-        key = self.strength + self.size
-        if key >= 41:
-            return "+2d6"
-        elif key >= 33:
-            return "+1d6"
-        elif key >= 25:
-            return "+1d4"
-        elif key >= 17:
-            return "None"
-        elif key >= 13:
-            return "-1d4"
-        else:
-            return "-1d6"
-
     def damage_roll(self, weapon_damage):
-        key = self.strength + self.size
-        damage_bonus = 0
-        if key >= 41:
-            damage_bonus = dice_roll(dice_pool(2, 6))
-        elif key >= 33:
-            damage_bonus = dice_roll(dice_pool(1, 6))
-        elif key >= 25:
-            damage_bonus = dice_roll(dice_pool(1, 4))
-        elif key >= 17:
-            pass
-        elif key >= 13:
-            damage_bonus = -(dice_roll(dice_pool(1, 4)))
-        else:
-            damage_bonus = -(dice_roll(dice_pool(1, 6)))
-        return weapon_damage + damage_bonus
+        damage_bonus = damage_bonus_table(self.strength, self.size)
+        return weapon_damage + damage_bonus['damage-bonus']
 
     def __repr__(self):
         msg = (
