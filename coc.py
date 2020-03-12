@@ -201,14 +201,48 @@ class HumanCharacter(object):
         skill = self.skill_dict[skill_name]
         return skill.roll()
 
+class Characteristic(object):
+    def __init__(self, name, short_name, score):
+        self.name = name
+        self.short_name = short_name
+        self.score = score
+
+    def __repr__(self):
+        msg = f"{self.short_name}: {self.score}"
+        return msg
+
+    def __add__(self, x):
+        return self.score + x
+
+    def __radd__(self, x):
+        return self.score + x
 
 if __name__ == "__main__":
     print("Welcome to the Call of Cthulhu character generator.")
     name = input("Please provide a name for your character: ")
     skill_dict = HumanCharacter.read_skill_dict()
-    player = HumanCharacter.generate_random(name,skill_dict)
-    print(f"Here is your character, {name}: \n{player}")
-    library_roll = player.skill_roll("library use")
-    print(
-        f"Let's go to the library! You rolled a {library_roll['result']}, which compared to your skill of {player.get_points('library use')} makes it a {'success' if library_roll['outcome'] is True else 'failure'}."
-    )
+    # Now we will start creating a character.
+    # TODO: Generate characteristics
+    stat_block = {
+        "STR" : Characteristic("Strength", "STR", dice_roll(d6_pool(3)) * 5),
+        "CON" : Characteristic("Constitution", "CON", dice_roll(d6_pool(3)) * 5),
+        "SIZ" : Characteristic("Size", "SIZ", dice_roll(d6_pool(2),6) * 5),
+        "DEX" : Characteristic("Dexterity", "DEX", dice_roll(d6_pool(3)) * 5),
+        "APP" : Characteristic("Appearance", "APP", dice_roll(d6_pool(3)) * 5),
+        "INT" : Characteristic("Intelligence", "INT", dice_roll(d6_pool(2),6) * 5),
+        "POW" : Characteristic("Power", "POW", dice_roll(d6_pool(3)) * 5),
+        "EDU" : Characteristic("Education", "EDU", dice_roll(d6_pool(2),6) * 5),
+        "LUK" : Characteristic("Luck", "LUK", dice_roll(d6_pool(3)) * 5)
+    }
+    print("I have generated your stats in the background for now.")
+    age = input("Please enter an age for your investigator: ")
+    # TODO: age has different effects - see pg 32 of 7e revised
+    print("Thank you. This will have an effect on your investigator later on.")
+    max_hp = math.floor((stat_block['CON'] + stat_block['SIZ'])/10)
+    movement_rate = 0
+    # TODO: movement rate rules on page 33 of 7th edition revised
+
+    # TODO: Determine Occupation
+    # TODO: Decide skills & allocate points
+    # TODO: Create a backstory
+    # TODO: Equip investigator
