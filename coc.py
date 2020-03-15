@@ -47,7 +47,7 @@ class Addable(object,metaclass=ABCMeta):
 
 
 class Rollable(Addable):
-    # TODO: make it so that all the reading methods are inside here as static or class methods
+    # TODO #9: make it so that all the reading methods are inside here as static or class methods
     def __init__(self, name, score, check):
         self.name = name
         super().__init__(score)
@@ -221,8 +221,7 @@ class Investigator(object):
 
 
 
-    # TODO: implement the age penalty. more complicated than I thought
-    # TODO: make a new constructor for Skills and Characteristics to pull from a tuple like (Skill_name, score).
+    # TODO #8: make a new constructor for Skills and Characteristics to pull from a tuple like (Skill_name, score).
     # XXX: Characteristic could derive the short_name from the first 3 letters of the name
     # XXX: that will make it easier to implement rule packs and the csvs
 
@@ -392,9 +391,9 @@ if __name__ == "__main__":
     print(leonard)
     max_hp = math.floor((stat_block['CON'] + stat_block['SIZ'])/10)
     movement_rate = 0
-    # TODO: movement rate rules on page 33 of 7th edition revised
+    # TODO #7 implement movement rate rules on page 33 of 7th edition revised
 
-    # TODO: Determine Occupation
-    # TODO: Decide skills & allocate points
-    # TODO: Create a backstory
-    # TODO: Equip investigator
+    # TODO #6 implement Determine Occupation step
+    # TODO #5 implement Decide skills & allocate points step
+    # TODO #4 implement Create a backstory step
+    # TODO #3 implement Equip investigator step
