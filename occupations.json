@@ -1,0 +1,29 @@
+{
+    "name": "Occupations list",
+    "templates": [
+        {
+            "name": "Interpersonal",
+            "skill list": [
+                    "charm",
+                    "fast talk",
+                    "intimidate",
+                    "persuade"
+                ]
+        }
+    ],
+    "occupations": [
+        {
+            "name": "antiquarian",
+            "skill_list": [
+                "appraise",
+                "arts_crafts",
+                "history",
+                "library_use",
+                "spot_hidden"
+            ],
+            "free_skills": 1,
+            "other_language": 1,
+            "interpersonal_skills": 1
+        }
+    ]
+}
