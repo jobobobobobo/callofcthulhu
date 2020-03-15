@@ -1,7 +1,7 @@
 from dice import dice_pool, dice_roll, d6_pool, Die
 from abc import ABCMeta, abstractmethod
 from functools import reduce
-from math import ceil
+import math
 from random import sample
 import csv
 
@@ -12,7 +12,7 @@ def damage_bonus_table(strength, size):
     damage_bonus_string = None
     build = 0
     if key >= 165:
-        number_d6 = ceil(((key-204)/80)+1)
+        number_d6 = math.ceil(((key-204)/80)+1)
         damage_bonus_string = f"+{number_d6}d6"
         damage_bonus = dice_roll(d6_pool(number_d6))
         build = number_d6 + 1
@@ -39,8 +39,14 @@ class Addable(object,metaclass=ABCMeta):
     def __radd__(self, x):
         return self.score + x
 
+    def __sub__(self, x):
+        return self.score - x
 
-class Rollable(Addable,metaclass=ABCMeta):
+    def __rsub__(self, x):
+        return self.score - x
+
+
+class Rollable(Addable):
     # TODO: make it so that all the reading methods are inside here as static or class methods
     def __init__(self, name, score, check):
         self.name = name
@@ -68,10 +74,10 @@ class Rollable(Addable,metaclass=ABCMeta):
     def points(self):
         return self.score
 
-    def check(self, roll, check=self.check):
+    def skill_improvement(self, check=True, roll=Die(100).result):
         if check == True:
             if roll > self.score:
-                self.score += Die(6).result
+                self.score += Die(6)
 
     def roll(self):
         result = Die(100).result
@@ -95,12 +101,17 @@ class Skill(Rollable):
         return skill
 
 class Characteristic(Rollable):
-    def __init__(self, name, short_name=name[0:3], score=0, check=False, rules=None):
+    def __init__(self, name, short_name=None, score=0, check=False, rules=None):
+        if short_name == None:
+           self.short_name = name[0:3]
         super().__init__(name, score, check)
         self.short_name = short_name.upper()
     
+    def __str__(self):
+        msg = f"{self.short_name}: {self.score:>2}"
+        return msg
     def __repr__(self):
-        msg = f"{self.short_name}: {self.score}"
+        msg = f"{self.short_name}: {self.score:>2}"
         return msg
 
 
@@ -136,9 +147,79 @@ class Investigator(object):
         ret = self.skill_dict[skill_name].points()
         return ret
 
-    def apply_age_penalty(self, strength, constitution, size, dexterity, appearance, intelligence, power, education, luck):
+    def apply_age_penalty(
+        self, 
+        strength=None, 
+        constitution=None, 
+        size=None, 
+        dexterity=None, 
+        appearance=None, 
+        intelligence=None, 
+        power=None, 
+        education=None
+        ):
+        if strength == None:
+            strength = self.strength
+        if constitution == None:
+            constitution = self.constitution
+        if size == None:
+            size = self.size
+        if dexterity == None:
+            dexterity = self.dexterity
+        if appearance == None:
+            appearance = self.appearance
+        if intelligence == None:
+            intelligence = self.intelligence
+        if power == None:
+            power = self.power
+        if education == None:
+            education = self.education
         if self.age >= 80:
+            for _ in range(4):
+                education.skill_improvement(check=True)
             self.strength = strength
+            self.constitution = constitution
+            self.dexterity = dexterity
+            self.appearance.score -= 25
+        elif self.age >= 70:
+            for _ in range(4):
+                education.skill_improvement(check=True)
+            self.strength = strength
+            self.constitution = constitution
+            self.dexterity = dexterity
+            self.appearance.score -= 20
+        elif self.age >= 60:
+            for _ in range(4):
+                education.skill_improvement(check=True)
+            self.strength = strength
+            self.constitution = constitution
+            self.dexterity = dexterity
+            self.appearance.score -= 15
+        elif self.age >= 50:
+            for _ in range(3):
+                education.skill_improvement(check=True)
+            self.strength = strength
+            self.constitution = constitution
+            self.dexterity = dexterity
+            self.appearance.score -= 10
+        elif self.age >= 40:
+            for _ in range(2):
+                education.skill_improvement(check=True)
+            self.strength = strength
+            self.constitution = constitution
+            self.dexterity = dexterity
+            self.appearance.score -= 5
+        elif self.age >= 20:
+            education.skill_improvement(check=True)
+        elif self.age >= 15:
+            self.size = size
+            self.strength = strength
+            self.education.score -= 5
+            luck_roll = [d6_pool(3),d6_pool(3)]
+            self.luck = max(dice_roll(x) for x in luck_roll) * 5
+        self.damage_bonus_table = damage_bonus_table(strength, size)
+
+
 
     # TODO: implement the age penalty. more complicated than I thought
     # TODO: make a new constructor for Skills and Characteristics to pull from a tuple like (Skill_name, score).
@@ -186,7 +267,7 @@ class Investigator(object):
         size: Characteristic,
         education: Characteristic,
         luck: Characteristic,
-        age,
+        age: int,
         skill_dict,
     ):
         self.name = name
@@ -208,11 +289,10 @@ class Investigator(object):
         self.age = age
 
         # Derived stats
-        self.damage_bonus = self.damage_bonus_table()
-        self.max_hp = ceil((self.constitution + self.size) / 2)
+        self.damage_bonus_table = damage_bonus_table(self.strength, self.size)
+        self.max_hp = math.floor((constitution + size)/10)
         self.current_hp = self.max_hp
-        self.wound_threshold = ceil(self.max_hp / 2)
-        self.xp_bonus = ceil(self.intelligence / 2)
+        self.wound_threshold = math.ceil(self.max_hp / 2)
 
         # Skills
         self.skill_dict = skill_dict
@@ -223,12 +303,12 @@ class Investigator(object):
 
     def __repr__(self):
         msg = (
-            f"Name: {self.name}\n Age: {self.age:>2}\n"
-            f" STR: {self.strength:>2} | INT: {self.intelligence:>2}\n"
-            f" CON: {self.constitution:>2} | POW: {self.power:>2}\n"
-            f" DEX: {self.dexterity:>2} | APP: {self.appearance:>2}\n"
-            f" SIZ: {self.size:>2} | EDU: {self.education:>2}\n"
-            f"  HP: {self.current_hp}/{self.max_hp}"
+            f" Name: {self.name}\n Age: {self.age:>2}\n"
+            f"  {self.strength} | {self.intelligence}\n"
+            f"  {self.constitution} | {self.power}\n"
+            f"  {self.dexterity} | {self.appearance}\n"
+            f"  {self.size} | {self.education}\n"
+            f"  {self.current_hp}/{self.max_hp}"
         )
         for key in self.skill_dict:
             msg += "\n" + str(self.skill_dict[key])
@@ -237,7 +317,6 @@ class Investigator(object):
     def skill_roll(self, skill_name):
         skill = self.skill_dict[skill_name]
         return skill.roll()
-# TODO: refactor this to be a subclass of Skill, to use the improvement check method.
 
 
 if __name__ == "__main__":
@@ -257,9 +336,60 @@ if __name__ == "__main__":
         "LUK" : Characteristic("Luck", "LUK", dice_roll(d6_pool(3)) * 5)
     }
     print("I have generated your stats in the background for now.")
-    age = input("Please enter an age for your investigator: ")
-    # TODO: age has different effects - see pg 32 of 7e revised
+    age = int(input("Please enter an age for your investigator: "))
     print("Thank you. This will have an effect on your investigator later on.")
+    leonard = Investigator(
+        name=name, 
+        strength=stat_block['STR'], 
+        constitution=stat_block['CON'], 
+        size=stat_block['SIZ'],
+        dexterity=stat_block['DEX'],
+        appearance=stat_block['APP'],
+        intelligence=stat_block['INT'],
+        power=stat_block['POW'],
+        education=stat_block['EDU'],
+        luck=stat_block['LUK'],
+        age=age,
+        skill_dict=skill_dict
+    )
+    required_penalty = 0
+    if age >= 80:
+        required_penalty = 80
+    elif age >= 70:
+        required_penalty = 40
+    elif age >= 60:
+        required_penalty = 20
+    elif age >= 50:
+        required_penalty = 10
+    elif age >= 40:
+        required_penalty = 5    
+    elif age >= 15:
+        required_penalty = 5
+    remaining_penalty = required_penalty
+    while (remaining_penalty > 0):
+        print(f"You currently have to apply {remaining_penalty} out of {required_penalty} points.")
+        if age >= 20:
+            stat_apply_to = input("Please choose between STR, CON, and DEX: ")
+        else:
+            stat_apply_to = input("Please choose between STR and SIZ: ").upper()
+        penalty_to_apply = int(input(f"Please input an amount no greater than {remaining_penalty}: "))
+        if penalty_to_apply >= remaining_penalty:
+            penalty_to_apply = remaining_penalty
+        if penalty_to_apply >= stat_block[stat_apply_to].score:
+            penalty_to_apply = stat_block[stat_apply_to].score
+        remaining_penalty -= penalty_to_apply
+        stat_block[stat_apply_to].score -= penalty_to_apply
+    leonard.apply_age_penalty(
+        strength=stat_block['STR'], 
+        constitution=stat_block['CON'], 
+        size=stat_block['SIZ'], 
+        dexterity=stat_block['DEX'], 
+        appearance=stat_block['APP'], 
+        intelligence=stat_block['INT'], 
+        power=stat_block['POW'], 
+        education=stat_block['EDU']
+    )
+    print(leonard)
     max_hp = math.floor((stat_block['CON'] + stat_block['SIZ'])/10)
     movement_rate = 0
     # TODO: movement rate rules on page 33 of 7th edition revised
