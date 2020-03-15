@@ -44,6 +44,19 @@ class Addable(object,metaclass=ABCMeta):
 
     def __rsub__(self, x):
         return self.score - x
+    def __gt__(self, x):
+        return self.score > x
+    def __lt__(self, x):
+        return self.score < x
+    def __eq__(self, x):
+        return self.score == x
+    def __ge__(self, x):
+        return self.score >= x
+    def __le__(self, x):
+        return self.score <= x
+
+        
+
 
 
 class Rollable(Addable):
@@ -128,6 +141,18 @@ class Investigator(object):
                 skill_dict.update({name : skill})
         return skill_dict
 
+    @staticmethod
+    def calculate_movement_rate(strength, dexterity, size):
+        rate = 0
+        if dexterity < size and strength < size:
+            rate = 7
+        elif (strength >= size or dexterity >= size) or strength == size and dexterity == size:
+            rate = 8
+        elif strength > size and dexterity > size:
+            rate = 9
+        return Characteristic("Movement Rate", "MOV", rate)
+        
+
     def stat_dictionary(self):
         return {
             "STR": self.strength,
@@ -181,6 +206,7 @@ class Investigator(object):
             self.constitution = constitution
             self.dexterity = dexterity
             self.appearance.score -= 25
+            self.movement_rate.score -= 5
         elif self.age >= 70:
             for _ in range(4):
                 education.skill_improvement(check=True)
@@ -188,6 +214,7 @@ class Investigator(object):
             self.constitution = constitution
             self.dexterity = dexterity
             self.appearance.score -= 20
+            self.movement_rate.score -= 4
         elif self.age >= 60:
             for _ in range(4):
                 education.skill_improvement(check=True)
@@ -195,6 +222,7 @@ class Investigator(object):
             self.constitution = constitution
             self.dexterity = dexterity
             self.appearance.score -= 15
+            self.movement_rate.score -= 3
         elif self.age >= 50:
             for _ in range(3):
                 education.skill_improvement(check=True)
@@ -202,6 +230,7 @@ class Investigator(object):
             self.constitution = constitution
             self.dexterity = dexterity
             self.appearance.score -= 10
+            self.movement_rate.score -= 2
         elif self.age >= 40:
             for _ in range(2):
                 education.skill_improvement(check=True)
@@ -209,6 +238,7 @@ class Investigator(object):
             self.constitution = constitution
             self.dexterity = dexterity
             self.appearance.score -= 5
+            self.movement_rate.score -= 1
         elif self.age >= 20:
             education.skill_improvement(check=True)
         elif self.age >= 15:
@@ -289,9 +319,10 @@ class Investigator(object):
 
         # Derived stats
         self.damage_bonus_table = damage_bonus_table(self.strength, self.size)
-        self.max_hp = math.floor((constitution + size)/10)
+        self.max_hp = Characteristic("Hit Points", "HP", score=math.floor((constitution + size)/10))
         self.current_hp = self.max_hp
-        self.wound_threshold = math.ceil(self.max_hp / 2)
+        self.wound_threshold = math.ceil(self.max_hp.score / 2)
+        self.movement_rate = Investigator.calculate_movement_rate(strength=strength,dexterity=dexterity,size=size)
 
         # Skills
         self.skill_dict = skill_dict
@@ -307,11 +338,19 @@ class Investigator(object):
             f"  {self.constitution} | {self.power}\n"
             f"  {self.dexterity} | {self.appearance}\n"
             f"  {self.size} | {self.education}\n"
-            f"  {self.current_hp}/{self.max_hp}"
+            f"  {self.current_hp}/{self.max_hp.score}\n"
+            f"  {self.movement_rate}"
         )
-        for key in self.skill_dict:
-            msg += "\n" + str(self.skill_dict[key])
+        skill_dict = self.get_skill_list(important=True)
+        for key in skill_dict:
+            msg += "\n" + str(skill_dict[key])
         return msg
+
+    def get_skill_list(self, important=False):
+        if important is False:
+            return [skill for skill in self.skill_dict]
+        elif important is True:
+            return [skill_dict[key] for key in self.skill_dict.keys() if skill_dict[key].important is True]
 
     def skill_roll(self, skill_name):
         skill = self.skill_dict[skill_name]
@@ -389,11 +428,11 @@ if __name__ == "__main__":
         education=stat_block['EDU']
     )
     print(leonard)
-    max_hp = math.floor((stat_block['CON'] + stat_block['SIZ'])/10)
-    movement_rate = 0
-    # TODO #7 implement movement rate rules on page 33 of 7th edition revised
 
     # TODO #6 implement Determine Occupation step
+    print(f"Now it is time to determine {name}'s occupation.")
+    
+
     # TODO #5 implement Decide skills & allocate points step
     # TODO #4 implement Create a backstory step
     # TODO #3 implement Equip investigator step
