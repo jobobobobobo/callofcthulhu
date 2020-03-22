@@ -428,11 +428,22 @@ if __name__ == "__main__":
         education=stat_block['EDU']
     )
     print(leonard)
-
-    # TODO #6 implement Determine Occupation step
+    occupation_name = input("Please provide a title for your occupation: ")
+    # TODO #11 Find a way to import occupations
+    # TODO #10 Find a way to generate credit scores
     print(f"Now it is time to determine {name}'s occupation.")
+    credit_score = int(input("Please enter a credit score for your character: "))
+    occupation_skills = {}
+    for _ in range(8):
+        skill_name = input("Please provide a name for your skill: ")
+        skill_base = input("Please input a base value for the skill: ")
+        skill = Skill(skill_name, skill_base,important=True)
+        occupation_skills.update({skill_name: skill})
     
-
+    
+    
     # TODO #5 implement Decide skills & allocate points step
+    # update step for the skills we've been selecting
+    leonard.skill_dict.update(occupation_skills)
     # TODO #4 implement Create a backstory step
     # TODO #3 implement Equip investigator step
