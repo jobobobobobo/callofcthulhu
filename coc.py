@@ -1,6 +1,7 @@
 from dice import dice_pool, dice_roll, d6_pool, Die
 from abc import ABCMeta, abstractmethod
 from functools import reduce
+from interfaces import Characteristic, Skill
 import math
 from random import sample
 import csv
@@ -28,105 +29,6 @@ def damage_bonus_table(strength, size):
         build = damage_bonus
     return {'damage-bonus': damage_bonus, 'build': build, 'dice': damage_bonus_string}
 # * being able to read in from a skill csv could be extended to read from a characteristics + skill csv
-
-class Addable(object,metaclass=ABCMeta):
-    def __init__(self, score):
-        self.score = score
-
-    def __add__(self, x):
-        return self.score + x
-
-    def __radd__(self, x):
-        return self.score + x
-
-    def __sub__(self, x):
-        return self.score - x
-
-    def __rsub__(self, x):
-        return self.score - x
-    def __gt__(self, x):
-        return self.score > x
-    def __lt__(self, x):
-        return self.score < x
-    def __eq__(self, x):
-        return self.score == x
-    def __ge__(self, x):
-        return self.score >= x
-    def __le__(self, x):
-        return self.score <= x
-
-        
-
-
-
-class Rollable(Addable):
-    # TODO #9: make it so that all the reading methods are inside here as static or class methods
-    def __init__(self, name, score, check):
-        self.name = name
-        super().__init__(score)
-        self.check = check
-
-    # Remember to fix this and add error handling later
-    @classmethod
-    def from_tuple(cls, name_score_tuple):
-        rollable = cls(name=name_score_tuple[0], score=name_score_tuple[1])
-        return rollable
-
-    def __repr__(self):
-        box = "\u25a1"
-        checked = "\u2611"
-        msg = f"{self.name}: {self.score}"
-        return msg
-
-    def __str__(self):
-        box = "\u25a1"
-        checked = "\u2611"
-        msg = f"{box if self.check is False else checked} {self.name.title()}: {self.score}"
-        return msg
-    
-    def points(self):
-        return self.score
-
-    def skill_improvement(self, check=True, roll=Die(100).result):
-        if check == True:
-            if roll > self.score:
-                self.score += Die(6)
-
-    def roll(self):
-        result = Die(100).result
-        outcome = True if (result <= self.score) else False
-        if outcome is True:
-            self.check = True
-        return {"outcome": outcome, "result": result}
-
-    def add_points(self, points):
-        self.score += points
-
-class Skill(Rollable):
-    def __init__(self, name, score, check=False, rules=None, important=False):
-        super().__init__(name, score, check)
-        self.rules = rules
-        self.important = important 
-
-    @classmethod
-    def from_tuple(cls, name_score_tuple):
-        skill = super().from_tuple(name_score_tuple)
-        return skill
-
-class Characteristic(Rollable):
-    def __init__(self, name, short_name=None, score=0, check=False, rules=None):
-        if short_name == None:
-           self.short_name = name[0:3]
-        super().__init__(name, score, check)
-        self.short_name = short_name.upper()
-    
-    def __str__(self):
-        msg = f"{self.short_name}: {self.score:>2}"
-        return msg
-    def __repr__(self):
-        msg = f"{self.short_name}: {self.score:>2}"
-        return msg
-
 
 class Investigator(object):
     
@@ -278,7 +180,7 @@ class Investigator(object):
             age=age,
             skill_dict=skill_dict,
         )
-        character.apply_age_penalty(age)
+        # character.apply_age_penalty(age)
 
 
         return character
@@ -316,13 +218,14 @@ class Investigator(object):
         self.education = education
         # Age is 17+2d6, but has a minimum of EDU + 5
         self.age = age
+        self.apply_age_penalty(self.age)
 
         # Derived stats
         self.damage_bonus_table = damage_bonus_table(self.strength, self.size)
-        self.max_hp = Characteristic("Hit Points", "HP", score=math.floor((constitution + size)/10))
+        self.max_hp = Characteristic("Hit Points", "HP", score=math.floor((self.constitution + self.size)/10))
         self.current_hp = self.max_hp
         self.wound_threshold = math.ceil(self.max_hp.score / 2)
-        self.movement_rate = Investigator.calculate_movement_rate(strength=strength,dexterity=dexterity,size=size)
+        self.movement_rate = Investigator.calculate_movement_rate(strength=self.strength,dexterity=self.dexterity,size=self.size)
 
         # Skills
         self.skill_dict = skill_dict
@@ -402,7 +305,7 @@ if __name__ == "__main__":
     elif age >= 40:
         required_penalty = 5    
     elif age >= 15:
-        required_penalty = 5
+        required_penalty = 0
     remaining_penalty = required_penalty
     while (remaining_penalty > 0):
         print(f"You currently have to apply {remaining_penalty} out of {required_penalty} points.")
@@ -441,9 +344,9 @@ if __name__ == "__main__":
         occupation_skills.update({skill_name: skill})
     
     
-    
     # TODO #5 implement Decide skills & allocate points step
     # update step for the skills we've been selecting
     leonard.skill_dict.update(occupation_skills)
     # TODO #4 implement Create a backstory step
     # TODO #3 implement Equip investigator step
+    print(leonard)
