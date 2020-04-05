@@ -1,5 +1,4 @@
 from dice import dice_pool, dice_roll, d6_pool, Die
-from abc import ABCMeta, abstractmethod
 from functools import reduce
 from interfaces import Characteristic, Skill
 import math
@@ -29,7 +28,56 @@ def damage_bonus_table(strength, size):
         build = damage_bonus
     return {'damage-bonus': damage_bonus, 'build': build, 'dice': damage_bonus_string}
 # * being able to read in from a skill csv could be extended to read from a characteristics + skill csv
+class Skill(Rollable):
+    def __init__(self, name, score, check=False, rules=None, important=False):
+        super().__init__(name, score)
+        self.rules = rules
+        self.important = important
+        self.check = check
 
+    def skill_improvement(self, check=True, roll=Die(100).result):
+        if check == True:
+            if roll > self.score:
+                self.score += Die(6)
+
+    def __str__(self):
+        box = "\u25a1"
+        checked = "\u2611"
+        msg = f"{box if self.check is False else checked} {self.name.title()}: {self.score}"
+        return msg
+
+    def roll(self):
+        result = Die(100).result
+        outcome = True if (result <= self.score) else False
+        if outcome is True:
+            self.check = True
+        return {"outcome": outcome, "result": result}
+
+    @classmethod
+    def from_tuple(cls, name_score_tuple):
+        skill = super().from_tuple(name_score_tuple)
+        return skill
+
+class Characteristic(Rollable):
+    def __init__(self, name, short_name=None, score=0, rules=None):
+        if short_name == None:
+           self.short_name = name[0:3]
+        super().__init__(name, score)
+        self.short_name = short_name.upper()
+
+    def roll(self):
+        result = Die(100).result
+        outcome = True if (result <= self.score) else False
+        if outcome is True:
+            self.check = True
+        return {"outcome": outcome, "result": result}
+    
+    def __str__(self):
+        msg = f"{self.short_name}: {self.score:>2}"
+        return msg
+    def __repr__(self):
+        msg = f"{self.short_name}: {self.score:>2}"
+        return msg
 class Investigator(object):
     
     @staticmethod
